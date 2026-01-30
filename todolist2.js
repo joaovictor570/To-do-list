@@ -1,70 +1,59 @@
-const taskInput = document.getElementById("task-input");
-const addBtn = document.getElementById("add-btn");
-const taskList = document.getElementById("task-list");
+function addTask() {
+  const input = document.getElementById("taskInput");
+  const taskText = input.value.trim();
 
-function loadTasks() {
-  const savedTasks = JSON.parse(localStorage.getItem("tasks")) || [];
-  savedTasks.forEach((task) => createTask(task.text, task.completed));
-}
+  if (taskText === "") {
+    alert("Digite uma tarefa!");
+    return;
+  }
 
-function saveTasks() {
-  const tasks = [];
-  document.querySelectorAll(".task").forEach((li) => {
-    tasks.push({
-      text: li.querySelector("span").textContent,
-      completed: li.classList.contains("completed"),
-    });
-  });
-  localStorage.setItem("tasks", JSON.stringify(tasks));
-}
-
-function createTask(text, completed = false) {
   const li = document.createElement("li");
-  li.classList.add("task");
-  if (completed) li.classList.add("completed");
 
-  const checkbox = document.createElement("input");
-  checkbox.type = "checkbox";
-  checkbox.classList.add("checkbox");
-  checkbox.checked = completed;
-
-  const span = document.createElement("span");
-  span.textContent = text;
-
-  const deleteBtn = document.createElement("button");
-  deleteBtn.innerHTML = "X";
-  deleteBtn.classList.add("delete-btn");
-
-  checkbox.addEventListener("change", () => {
+  const taskSpan = document.createElement("span");
+  taskSpan.textContent = taskText;
+  taskSpan.addEventListener("click", () => {
     li.classList.toggle("completed");
-    saveTasks();
   });
 
-  deleteBtn.addEventListener("click", () => {
-    li.remove();
-    saveTasks();
-  });
+  const editBtn = document.createElement("button");
+  editBtn.textContent = "Editar";
+  editBtn.className = "edit-btn";
+  editBtn.onclick = () => editTask(taskSpan);
 
-  li.appendChild(checkbox);
-  li.appendChild(span);
-  li.appendChild(deleteBtn);
+  const removeBtn = document.createElement("button");
+  removeBtn.textContent = "X";
+  removeBtn.className = "remove-btn";
+  removeBtn.onclick = () => li.remove();
 
-  taskList.appendChild(li);
+  li.appendChild(taskSpan);
+  li.appendChild(editBtn);
+  li.appendChild(removeBtn);
+
+  document.getElementById("taskList").appendChild(li);
+
+  input.value = "";
 }
 
-addBtn.addEventListener("click", () => {
-  const text = taskInput.value.trim();
-  if (text) {
-    createTask(text);
-    saveTasks();
-    taskInput.value = "";
-  }
-});
+function editTask(taskSpan) {
+  const currentText = taskSpan.textContent;
+  const input = document.createElement("input");
+  input.type = "text";
+  input.value = currentText;
+  input.className = "edit-input";
 
-taskInput.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") {
-    addBtn.click();
-  }
-});
+  taskSpan.replaceWith(input);
+  input.focus();
 
-loadTasks();
+  const saveEdit = () => {
+    const newText = input.value.trim() || currentText;
+    taskSpan.textContent = newText;
+    input.replaceWith(taskSpan);
+  };
+
+  input.addEventListener("blur", saveEdit);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      input.blur();
+    }
+  });
+}
